@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe Hard Mode</title>
+<style>
+body{
+  margin:0;
+  width:100vw;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  font-family: Arial, sans-serif;
+}
+.game{
+  width:90vw;
+  max-width:360px;
+  background:#111;
+  padding:20px;
+  border-radius:20px;
+  box-shadow:0 0 25px #00c6ff;
+  text-align:center;
+  color:#fff;
+}
+h1{font-size:22px;margin-bottom:10px}
+.status{margin-bottom:10px;font-size:16px;}
+.scoreboard{margin:10px 0;font-size:16px;}
+.board{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin:15px 0;
+}
+.cell{
+  width:100%;
+  aspect-ratio:1/1;
+  background:#000;
+  border-radius:12px;
+  font-size:32px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  transition:0.2s;
+}
+.cell:hover{background:#222}
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:20px;
+  background:#00c6ff;
+  font-size:16px;
+  cursor:pointer;
+}
+button:hover{background:#fff}
+.win{color:#00ff99}
+.lose{color:#ff6b6b}
+.tie{color:#ffd93d}
+</style>
+</head>
+<body>
+
+<div class="game">
+  <h1>TIC TAC TOE HARD MODE</h1>
+  <div class="status" id="status">Your Turn (X)</div>
+  <div class="scoreboard">You: <span id="youScore">0</span> | Computer: <span id="compScore">0</span></div>
+
+  <div class="board" id="board">
+    <div class="cell" onclick="playerMove(0)"></div>
+    <div class="cell" onclick="playerMove(1)"></div>
+    <div class="cell" onclick="playerMove(2)"></div>
+    <div class="cell" onclick="playerMove(3)"></div>
+    <div class="cell" onclick="playerMove(4)"></div>
+    <div class="cell" onclick="playerMove(5)"></div>
+    <div class="cell" onclick="playerMove(6)"></div>
+    <div class="cell" onclick="playerMove(7)"></div>
+    <div class="cell" onclick="playerMove(8)"></div>
+  </div>
+
+  <button onclick="resetGame()">Restart Game</button>
+</div>
+
+<!-- SOUND FILES -->
+<audio id="click" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+<audio id="win" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="lose" src="https://actions.google.com/sounds/v1/cartoon/boing.ogg"></audio>
+<audio id="tie" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
+
+<script>
+let board=["","","","","","","","",""];
+let gameOver=false;
+let current="X";
+let youScore=0, compScore=0;
+const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+function playerMove(index){
+  if(board[index]!=="" || gameOver) return;
+  document.getElementById("click").play();
+  board[index]="X";
+  updateBoard();
+  if(checkWin("X")){endGame("You Win!");youScore++;updateScore();return;}
+  if(isDraw()){endGame("Match Draw!");return;}
+  document.getElementById("status").innerText="Computer Thinking...";
+  setTimeout(computerMove,500);
+}
+
+function computerMove(){
+  // Hard AI logic: Win > Block > Random
+  let move = bestMove();
+  board[move]="O";
+  updateBoard();
+  if(checkWin("O")){endGame("Computer Wins!");compScore++;updateScore();return;}
+  if(isDraw()){endGame("Match Draw!");return;}
+  document.getElementById("status").innerText="Your Turn (X)";
+}
+
+function bestMove(){
+  // Win if possible
+  for(let i of emptyCells()){
+    board[i]="O";
+    if(checkWin("O")){board[i]=""; return i;}
+    board[i]="";
+  }
+  // Block player
+  for(let i of emptyCells()){
+    board[i]="X";
+    if(checkWin("X")){board[i]=""; return i;}
+    board[i]="";
+  }
+  // Center
+  if(board[4]==="") return 4;
+  // Corners
+  for(let i of [0,2,6,8]) if(board[i]==="") return i;
+  // Random
+  let empty=emptyCells();
+  return empty[Math.floor(Math.random()*empty.length)];
+}
+
+function emptyCells(){
+  return board.map((v,i)=>v===""?i:null).filter(v=>v!==null);
+}
+
+function updateBoard(){
+  document.querySelectorAll(".cell").forEach((cell,i)=>cell.innerText=board[i]);
+}
+
+function checkWin(p){
+  return wins.some(combo => combo.every(i => board[i]===p));
+}
+
+function isDraw(){return board.every(c=>c!=="");}
+
+function endGame(text){
+  document.getElementById("status").innerText=text;
+  document.getElementById("status").className="status "+(text.includes("Win")?"win":text.includes("Draw")?"tie":"lose");
+  document.getElementById(text.includes("You")?"win":"lose").play();
+  gameOver=true;
+}
+
+function updateScore(){
+  document.getElementById("youScore").innerText=youScore;
+  document.getElementById("compScore").innerText=compScore;
+}
+
+function resetGame(){
+  board=["","","","","","","","",""];
+  gameOver=false;
+  current="X";
+  document.getElementById("status").innerText="Your Turn (X)";
+  document.getElementById("status").className="status";
+  updateBoard();
+}
+</script>
+
+</body>
+</html>
